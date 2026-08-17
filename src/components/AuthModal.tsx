@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, UserPlus, LogIn, Globe, ShieldCheck, Shield, CheckCircle2 } from "lucide-react";
+import { X, UserPlus, LogIn, Globe, ShieldCheck, Shield, CircleCheck as CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { UserProfile, IndustryType, AtollRecord } from "../types";
 import { MALDIVES_INDUSTRIES, getActiveAtollRegistry } from "../data/atolls";
@@ -313,15 +313,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         onChange={(e) => {
                           const newAtoll = e.target.value;
                           setAtoll(newAtoll);
-                          const atollObj = MALDIVES_ATOLLS.find((a) => a.name === newAtoll);
+                          const atollObj = activeAtolls.find((a) => a.name === newAtoll);
                           if (atollObj && atollObj.islands.length > 0) {
-                            setIsland(atollObj.islands[0]);
+                            setIsland(atollObj.islands[0].name);
                           }
                         }}
                         className="w-full px-2.5 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
                       >
-                        {MALDIVES_ATOLLS.map((a) => (
-                          <option key={a.code} value={a.name}>
+                        {activeAtolls.map((a) => (
+                          <option key={a.id} value={a.name}>
                             {a.name}
                           </option>
                         ))}
