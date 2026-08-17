@@ -20,6 +20,7 @@ import {
 import { UserProfile, IndustryType, ThemeType, Experience, ProjectItem, SkillItem, Education, Certification, AtollRecord } from "../types";
 import { MALDIVES_INDUSTRIES, getActiveAtollRegistry } from "../data/atolls";
 import { aiEnhanceBio, aiSuggestSkills } from "../services/api";
+import { PositionSelector } from "./PositionSelector";
 
 interface ProfileEditorProps {
   initialProfile: UserProfile;
@@ -435,18 +436,13 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-mono uppercase font-bold text-[#57534E] mb-1">
-                    Professional Title / Role *
-                  </label>
-                  <input
-                    type="text"
-                    value={profile.title}
-                    onChange={(e) => updateField("title", e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-[#FAF9F6] border border-[#E7E2DA] rounded-md text-xs sm:text-sm font-mono font-semibold text-[#1C1917] focus:bg-white focus:outline-hidden focus:border-[#8B4513]"
-                    placeholder="e.g. Executive Head Chef & Island Gastronomy Consultant"
-                  />
-                </div>
+                <PositionSelector
+                  value={profile.title}
+                  onChange={(val) => updateField("title", val)}
+                  label="Professional Title / Role *"
+                  categoryHint={profile.industry}
+                  required
+                />
 
                 <div>
                   <label className="block text-[11px] font-mono uppercase font-bold text-[#57534E] mb-1">

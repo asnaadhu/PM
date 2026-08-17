@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { UserProfile, IndustryType, AtollRecord } from "../types";
 import { MALDIVES_INDUSTRIES, getActiveAtollRegistry } from "../data/atolls";
 import { DEFAULT_ADMIN_PROFILE } from "../services/api";
+import { PositionSelector } from "./PositionSelector";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -278,17 +279,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-mono uppercase font-bold text-[#57534E] mb-1">Professional Title *</label>
-                    <input
-                      type="text"
-                      required
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="e.g. Executive Chef / Marine Biologist"
-                      className="w-full px-3.5 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
-                    />
-                  </div>
+                  <PositionSelector
+                    value={title}
+                    onChange={setTitle}
+                    label="Professional Title *"
+                    required
+                  />
 
                   <div>
                     <label className="block text-[11px] font-mono uppercase font-bold text-[#57534E] mb-1">Industry Sector</label>
