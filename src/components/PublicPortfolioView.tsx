@@ -1,33 +1,33 @@
 import React, { useState } from "react";
-import {
-  ArrowLeft,
-  Share2,
-  Printer,
-  Mail,
-  Phone,
-  MessageSquare,
-  Globe,
-  Linkedin,
-  Github,
-  MapPin,
-  Briefcase,
-  GraduationCap,
-  Award,
-  CheckCircle,
-  ShieldCheck,
-  Download,
-  Copy,
-  Check,
-  Send,
-  QrCode,
-  X,
-  ExternalLink,
-  Sparkles,
-  Layers,
-  Calendar,
-  CheckSquare
-} from "lucide-react";
+import { ArrowLeft, Share2, Printer, Mail, Phone, MessageSquare, Globe, Linkedin, Github, MapPin, Briefcase, GraduationCap, Award, CircleCheck as CheckCircle, ShieldCheck, Download, Copy, Check, Send, QrCode, X, ExternalLink, Sparkles, Layers, Calendar, SquareCheck as CheckSquare } from "lucide-react";
 import { UserProfile } from "../types";
+
+const AVAILABILITY_GROUPS: { title: string; options: string[] }[] = [
+  {
+    title: "Employment Type",
+    options: [
+      "Full-Time Permanent",
+      "Part-Time",
+      "Contract / Fixed-Term",
+      "Freelance / Consulting",
+      "Seasonal / Peak Season",
+      "Internship / Traineeship",
+      "Temporary / Short-Term Cover",
+    ],
+  },
+  {
+    title: "Work Location & Arrangement",
+    options: [
+      "On-Site (Resort Island / Relocation)",
+      "On-Site (Greater Malé Area)",
+      "On-Site (Local Inhabited Islands)",
+      "Remote / Work from Home",
+      "Hybrid",
+      "Willing to Relocate",
+      "Available for Travel / Offshore / Liveaboard",
+    ],
+  },
+];
 
 interface PublicPortfolioViewProps {
   profile: UserProfile;
@@ -287,18 +287,30 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({
               )}
             </div>
 
-            {/* Available For Badges */}
+            {/* Available For Badges — organized by group, only selected shown */}
             {profile.availableFor && profile.availableFor.length > 0 && (
-              <div className="mt-3 flex flex-wrap items-center gap-1.5 font-mono text-[10px]">
-                <span className="font-bold text-[#C27D38] uppercase tracking-wider mr-1">Available for:</span>
-                {profile.availableFor.map((item, idx) => (
-                  <span
-                    key={idx}
-                    className="px-2 py-0.5 rounded-sm font-semibold uppercase bg-[#2A2421] text-[#E7E5E4] border border-[#3D3530]"
-                  >
-                    ✓ {item}
-                  </span>
-                ))}
+              <div className="mt-3 space-y-2 font-mono text-[10px]">
+                {AVAILABILITY_GROUPS.map((group) => {
+                  const selectedInGroup = group.options.filter((opt) =>
+                    profile.availableFor.includes(opt)
+                  );
+                  if (selectedInGroup.length === 0) return null;
+                  return (
+                    <div key={group.title} className="flex flex-wrap items-center gap-1.5">
+                      <span className="font-bold text-[#C27D38] uppercase tracking-wider mr-1">
+                        {group.title}:
+                      </span>
+                      {selectedInGroup.map((item, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-0.5 rounded-sm font-semibold uppercase bg-[#2A2421] text-[#E7E5E4] border border-[#3D3530]"
+                        >
+                          ✓ {item}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
