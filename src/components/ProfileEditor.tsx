@@ -5,6 +5,18 @@ import { MALDIVES_INDUSTRIES, getActiveAtollRegistry } from "../data/atolls";
 import { aiEnhanceBio, aiSuggestSkills } from "../services/api";
 import { PositionSelector } from "./PositionSelector";
 
+const AVAILABILITY_OPTIONS = [
+  "Full-time",
+  "Part-time",
+  "Consulting / Freelance",
+  "Resort Projects",
+  "Board Advisory",
+  "Speaking / Workshops",
+  "Mentorship",
+  "Institutional Partnerships",
+  "Registry Verification",
+];
+
 interface ProfileEditorProps {
   initialProfile: UserProfile;
   onSave: (updatedProfile: UserProfile, publish: boolean) => void;
@@ -603,6 +615,46 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({
                       />
                     </div>
                   </div>
+                </div>
+
+                {/* Availability / Open To */}
+                <div className="space-y-3 pt-3 border-t border-[#E7E2DA]">
+                  <h3 className="text-[11px] font-mono font-bold uppercase tracking-widest text-[#78716C]">
+                    Available For
+                  </h3>
+                  <p className="text-[11px] font-mono text-[#A8A29E] -mt-1">
+                    Select the engagement types you're open to. These appear on your public CV.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {AVAILABILITY_OPTIONS.map((option) => {
+                      const selected = profile.availableFor.includes(option);
+                      return (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => {
+                            const next = selected
+                              ? profile.availableFor.filter((o) => o !== option)
+                              : [...profile.availableFor, option];
+                            updateField("availableFor", next);
+                          }}
+                          className={`px-3 py-1.5 rounded-md text-xs font-mono font-bold uppercase tracking-wider border transition-all active:scale-95 ${
+                            selected
+                              ? "bg-[#8B4513] text-white border-[#8B4513] shadow-2xs"
+                              : "bg-[#FAF9F6] text-[#78716C] border-[#E7E2DA] hover:border-[#8B4513] hover:text-[#8B4513]"
+                          }`}
+                        >
+                          {selected && <span className="mr-1">✓</span>}
+                          {option}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {profile.availableFor.length === 0 && (
+                    <p className="text-[11px] font-mono text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-1.5">
+                      Select at least one option so visitors know what engagements you're open to.
+                    </p>
+                  )}
                 </div>
               </div>
             )}
