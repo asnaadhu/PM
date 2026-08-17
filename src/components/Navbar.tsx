@@ -83,6 +83,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     }`;
 
   return (
+    <>
     <header className="sticky top-0 z-40 bg-[#FAF9F6]/90 backdrop-blur-md border-b border-[#E7E2DA] transition-all">
       {/* Top Heritage Accent Bar */}
       <div className="h-1 w-full bg-gradient-to-r from-[#8B4513] via-[#B85D19] to-[#8B4513]" />
@@ -349,8 +350,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
         </div>
       </div>
+    </header>
 
-      {/* Mobile Navigation Drawer */}
+      {/* Mobile Navigation Drawer — outside header to escape backdrop-blur containing block */}
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-50">
           {/* Backdrop */}
@@ -475,6 +477,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 };
