@@ -1,22 +1,5 @@
 import React, { useState, useMemo } from "react";
-import {
-  Save,
-  Globe,
-  Sparkles,
-  Plus,
-  Trash2,
-  MapPin,
-  Briefcase,
-  GraduationCap,
-  Award,
-  Layers,
-  CheckCircle,
-  Eye,
-  Upload,
-  Download,
-  Palette,
-  User
-} from "lucide-react";
+import { Save, Globe, Sparkles, Plus, Trash2, MapPin, Briefcase, GraduationCap, Award, Layers, CircleCheck as CheckCircle, Eye, Upload, Download, Palette, User } from "lucide-react";
 import { UserProfile, IndustryType, ThemeType, Experience, ProjectItem, SkillItem, Education, Certification, AtollRecord } from "../types";
 import { MALDIVES_INDUSTRIES, getActiveAtollRegistry } from "../data/atolls";
 import { aiEnhanceBio, aiSuggestSkills } from "../services/api";
