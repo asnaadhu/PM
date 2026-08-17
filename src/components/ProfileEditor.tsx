@@ -336,38 +336,40 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({
         </div>
 
         {/* Editor Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Tabs Sidebar */}
-          <div className="lg:col-span-1 space-y-1 bg-[#FFFFFF] p-3 rounded-xl border border-[#E7E2DA] shadow-2xs h-fit">
-            {[
-              { id: "basic", label: "1. Identity & Specialty", icon: User },
-              { id: "bio", label: "2. Bio & Summary", icon: Sparkles },
-              { id: "experience", label: "3. Work Experience", icon: Briefcase },
-              { id: "projects", label: "4. Portfolio Projects", icon: Layers },
-              { id: "skills", label: "5. Skills & Languages", icon: CheckCircle },
-              { id: "certifications", label: "6. Certifications", icon: Award },
-              { id: "education", label: "7. Education", icon: GraduationCap },
-              { id: "theme", label: "8. Theme & Layout", icon: Palette },
-            ].map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id as any)}
-                  className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-md text-left text-xs font-mono font-bold uppercase tracking-wider transition-colors ${
-                    activeTab === tab.id
-                      ? "bg-[#FAF9F6] text-[#8B4513] border border-[#E7E2DA] shadow-2xs"
-                      : "text-[#57534E] hover:bg-[#FAF9F6] hover:text-[#1C1917]"
-                  }`}
-                >
-                  <Icon className={`w-3.5 h-3.5 ${activeTab === tab.id ? "text-[#8B4513]" : "text-[#78716C]"}`} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+          {/* Tabs Sidebar — horizontal scroll on mobile, vertical sidebar on desktop */}
+          <div className="lg:col-span-1 bg-[#FFFFFF] p-3 rounded-xl border border-[#E7E2DA] shadow-2xs h-fit">
+            <div className="flex lg:flex-col gap-1.5 lg:gap-1 overflow-x-auto lg:overflow-visible -mx-1 px-1 pb-1 lg:pb-0">
+              {[
+                { id: "basic", label: "1. Identity & Specialty", icon: User },
+                { id: "bio", label: "2. Bio & Summary", icon: Sparkles },
+                { id: "experience", label: "3. Work Experience", icon: Briefcase },
+                { id: "projects", label: "4. Portfolio Projects", icon: Layers },
+                { id: "skills", label: "5. Skills & Languages", icon: CheckCircle },
+                { id: "certifications", label: "6. Certifications", icon: Award },
+                { id: "education", label: "7. Education", icon: GraduationCap },
+                { id: "theme", label: "8. Theme & Layout", icon: Palette },
+              ].map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id as any)}
+                    className={`flex items-center space-x-2.5 px-3 py-2 rounded-md text-left text-xs font-mono font-bold uppercase tracking-wider transition-colors whitespace-nowrap shrink-0 lg:shrink lg:w-full ${
+                      activeTab === tab.id
+                        ? "bg-[#FAF9F6] text-[#8B4513] border border-[#E7E2DA] shadow-2xs"
+                        : "text-[#57534E] hover:bg-[#FAF9F6] hover:text-[#1C1917] border border-transparent"
+                    }`}
+                  >
+                    <Icon className={`w-3.5 h-3.5 shrink-0 ${activeTab === tab.id ? "text-[#8B4513]" : "text-[#78716C]"}`} />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
 
-            {/* Public Link Key */}
-            <div className="pt-4 mt-3 border-t border-[#E7E2DA] px-2 text-xs">
+            {/* Public Link Key — desktop only */}
+            <div className="hidden lg:block pt-4 mt-3 border-t border-[#E7E2DA] px-2 text-xs">
               <span className="font-mono font-bold text-[#78716C] block mb-1 text-[10px] uppercase tracking-widest">Public URL:</span>
               <p className="text-[11px] font-mono text-[#8B4513] bg-[#FAF9F6] p-2 rounded-md break-all border border-[#E7E2DA] font-semibold">
                 {window.location.origin}/p/{profile.slug}
@@ -376,7 +378,7 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({
           </div>
 
           {/* Form Content Area */}
-          <div className="lg:col-span-3 bg-[#FFFFFF] p-6 sm:p-8 rounded-xl border border-[#E7E2DA] shadow-2xs">
+          <div className="lg:col-span-3 bg-[#FFFFFF] p-4 sm:p-6 lg:p-8 rounded-xl border border-[#E7E2DA] shadow-2xs">
             {/* TAB 1: BASIC IDENTITY */}
             {activeTab === "basic" && (
               <div className="space-y-5">
