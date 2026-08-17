@@ -5,16 +5,33 @@ import { MALDIVES_INDUSTRIES, getActiveAtollRegistry } from "../data/atolls";
 import { aiEnhanceBio, aiSuggestSkills } from "../services/api";
 import { PositionSelector } from "./PositionSelector";
 
-const AVAILABILITY_OPTIONS = [
-  "Full-time",
-  "Part-time",
-  "Consulting / Freelance",
-  "Resort Projects",
-  "Board Advisory",
-  "Speaking / Workshops",
-  "Mentorship",
-  "Institutional Partnerships",
-  "Registry Verification",
+const AVAILABILITY_GROUPS: { title: string; subtitle: string; options: string[] }[] = [
+  {
+    title: "Employment Type",
+    subtitle: "What you want",
+    options: [
+      "Full-Time Permanent",
+      "Part-Time",
+      "Contract / Fixed-Term",
+      "Freelance / Consulting",
+      "Seasonal / Peak Season",
+      "Internship / Traineeship",
+      "Temporary / Short-Term Cover",
+    ],
+  },
+  {
+    title: "Work Location & Arrangement",
+    subtitle: "Where you can work",
+    options: [
+      "On-Site (Resort Island / Relocation)",
+      "On-Site (Greater Malé Area)",
+      "On-Site (Local Inhabited Islands)",
+      "Remote / Work from Home",
+      "Hybrid",
+      "Willing to Relocate",
+      "Available for Travel / Offshore / Liveaboard",
+    ],
+  },
 ];
 
 interface ProfileEditorProps {
@@ -618,38 +635,52 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({
                 </div>
 
                 {/* Availability / Open To */}
-                <div className="space-y-3 pt-3 border-t border-[#E7E2DA]">
+                <div className="space-y-4 pt-3 border-t border-[#E7E2DA]">
                   <h3 className="text-[11px] font-mono font-bold uppercase tracking-widest text-[#78716C]">
                     Available For
                   </h3>
                   <p className="text-[11px] font-mono text-[#A8A29E] -mt-1">
-                    Select the engagement types you're open to. These appear on your public CV.
+                    Select the engagement types and work arrangements you're open to. These appear on your public CV.
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    {AVAILABILITY_OPTIONS.map((option) => {
-                      const selected = profile.availableFor.includes(option);
-                      return (
-                        <button
-                          key={option}
-                          type="button"
-                          onClick={() => {
-                            const next = selected
-                              ? profile.availableFor.filter((o) => o !== option)
-                              : [...profile.availableFor, option];
-                            updateField("availableFor", next);
-                          }}
-                          className={`px-3 py-1.5 rounded-md text-xs font-mono font-bold uppercase tracking-wider border transition-all active:scale-95 ${
-                            selected
-                              ? "bg-[#8B4513] text-white border-[#8B4513] shadow-2xs"
-                              : "bg-[#FAF9F6] text-[#78716C] border-[#E7E2DA] hover:border-[#8B4513] hover:text-[#8B4513]"
-                          }`}
-                        >
-                          {selected && <span className="mr-1">✓</span>}
-                          {option}
-                        </button>
-                      );
-                    })}
+
+                  <div className="space-y-4">
+                    {AVAILABILITY_GROUPS.map((group) => (
+                      <div key={group.title} className="space-y-2">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xs font-display font-bold text-[#1C1917]">{group.title}</span>
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-[#A8A29E]">
+                            {group.subtitle}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {group.options.map((option) => {
+                            const selected = profile.availableFor.includes(option);
+                            return (
+                              <button
+                                key={option}
+                                type="button"
+                                onClick={() => {
+                                  const next = selected
+                                    ? profile.availableFor.filter((o) => o !== option)
+                                    : [...profile.availableFor, option];
+                                  updateField("availableFor", next);
+                                }}
+                                className={`px-3 py-1.5 rounded-md text-[11px] font-mono font-bold tracking-wide border transition-all active:scale-95 ${
+                                  selected
+                                    ? "bg-[#8B4513] text-white border-[#8B4513] shadow-2xs"
+                                    : "bg-[#FAF9F6] text-[#78716C] border-[#E7E2DA] hover:border-[#8B4513] hover:text-[#8B4513]"
+                                }`}
+                              >
+                                {selected && <span className="mr-1">✓</span>}
+                                {option}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
+
                   {profile.availableFor.length === 0 && (
                     <p className="text-[11px] font-mono text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-1.5">
                       Select at least one option so visitors know what engagements you're open to.
