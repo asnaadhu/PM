@@ -1,16 +1,13 @@
 export type UserRole = "admin" | "user";
 
 export type IndustryType =
-  | "Hospitality & Luxury Resorts"
-  | "Marine Science & Diving"
-  | "Technology & Software"
-  | "Creative Arts & Media"
-  | "Finance & Banking"
-  | "Aviation & Logistics"
-  | "Architecture & Engineering"
-  | "Healthcare & Wellness"
-  | "Culinary & Gastronomy"
-  | "Public Administration & Policy";
+  | "Civil Service (CSC)"
+  | "State-Owned Enterprises (SOEs) / Public Companies"
+  | "Hospitality & Resort Sector"
+  | "Private Sector (General Commercial)"
+  | "Independent / Statutory Institutions"
+  | "Civil Society / NGOs & International Agencies"
+  | "Freelance, Gig & Self-Employed";
 
 export type ThemeType =
   | "kanditheemu-editorial"

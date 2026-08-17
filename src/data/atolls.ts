@@ -20,10 +20,47 @@ export interface IndustrySectorInfo {
 
 export const MALDIVES_INDUSTRIES_DETAILED: IndustrySectorInfo[] = [
   {
-    id: "hospitality",
-    name: "Hospitality & Luxury Resorts",
+    id: "civil_service",
+    name: "Civil Service (CSC)",
+    shortName: "Civil Service",
+    description: "Core government ministries, departments, island/atoll councils, public schools, and government hospitals/health centers.",
+    iconName: "Shield",
+    keyProfessions: [
+      "Ministry Policy Director",
+      "Island Council President",
+      "Public School Principal",
+      "Government Hospital Administrator",
+      "Atoll Council Coordinator",
+      "Civil Service Commission Officer",
+      "Public School Teacher",
+      "Government Health Center Doctor"
+    ],
+    nationalSignificance: "The administrative backbone of the Maldives, delivering public services across all inhabited islands and atolls."
+  },
+  {
+    id: "soes",
+    name: "State-Owned Enterprises (SOEs) / Public Companies",
+    shortName: "SOEs",
+    description: "Government-backed commercial corporations (e.g., STO, Dhiraagu, BML, MACL, HDC, Fenaka, STELCO, MTCC, Island Aviation).",
+    iconName: "Building2",
+    keyProfessions: [
+      "SOE Chief Executive Officer",
+      "Corporate Operations Manager",
+      "State Trading Organization (STO) Manager",
+      "Dhiraagu Telecom Engineer",
+      "Bank of Maldives (BML) Officer",
+      "MACL Airport Operations Lead",
+      "Fenaka Utility Engineer",
+      "MTCC Construction Manager",
+      "Island Aviation Pilot"
+    ],
+    nationalSignificance: "Government-backed corporations driving telecom, banking, utilities, aviation, and infrastructure nationwide."
+  },
+  {
+    id: "hospitality_resort",
+    name: "Hospitality & Resort Sector",
     shortName: "Hospitality",
-    description: "Executive resort leadership, guest experience architecture, luxury F&B management, and island destination operations.",
+    description: "Private island tourist resorts, luxury safari yachts/liveaboards, resort management groups, and specialized dive/water sports centers.",
     iconName: "Hotel",
     keyProfessions: [
       "Resort General Manager",
@@ -33,165 +70,93 @@ export const MALDIVES_INDUSTRIES_DETAILED: IndustrySectorInfo[] = [
       "Director of Human Resources",
       "Spa & Wellness Director",
       "Front Office Manager",
-      "Revenue & Reservations Manager"
+      "Dive Center Manager",
+      "Liveaboard Safari Captain"
     ],
     nationalSignificance: "The economic cornerstone of the Maldives, demanding world-class hospitality leadership across 170+ luxury resort islands."
   },
   {
-    id: "marine_science",
-    name: "Marine Science & Diving",
-    shortName: "Marine Science",
-    description: "Coral reef restoration, oceanographic research, megafauna conservation, and master diving instruction.",
-    iconName: "Waves",
+    id: "private_sector",
+    name: "Private Sector (General Commercial)",
+    shortName: "Private Sector",
+    description: "Private registered companies, retail businesses, local guesthouses, private clinics, trading firms, and construction contractors.",
+    iconName: "Briefcase",
     keyProfessions: [
-      "Lead Marine Biologist",
-      "PADI Course Director / Master Instructor",
-      "Coral Reef Restoration Specialist",
-      "Oceanographic Researcher",
-      "Marine Protected Area Manager",
-      "Manta & Whale Shark Project Lead",
-      "Dive Center Operations Manager"
+      "Private Company Director",
+      "Guesthouse Owner & Manager",
+      "Retail Business Owner",
+      "Private Clinic Doctor",
+      "Trading Firm Manager",
+      "Construction Contractor",
+      "Accounting & Finance Manager",
+      "Sales & Marketing Manager"
     ],
-    nationalSignificance: "Critical for safeguarding fragile atoll ecosystems, UNESCO biosphere reserves, and world-renowned underwater heritage."
+    nationalSignificance: "The commercial engine of local economies, providing goods, services, and employment across all inhabited islands."
   },
   {
-    id: "technology",
-    name: "Technology & Software",
-    shortName: "Tech & FinTech",
-    description: "Cloud systems engineering, FinTech payment solutions, full-stack development, and digital public infrastructure.",
-    iconName: "Code",
+    id: "statutory",
+    name: "Independent / Statutory Institutions",
+    shortName: "Statutory Bodies",
+    description: "Constitutional and independent bodies (e.g., MMA, MIRA, Elections Commission, ACC, Judiciary, HRCM).",
+    iconName: "Scale",
     keyProfessions: [
-      "Full Stack Software Engineer",
-      "Cloud Infrastructure Architect",
-      "FinTech Product Manager",
-      "Cybersecurity Specialist",
-      "AI & Data Engineer",
-      "DevOps / SRE Lead",
-      "Mobile Applications Developer"
+      "Maldives Monetary Authority (MMA) Officer",
+      "Maldives Inland Revenue Authority (MIRA) Officer",
+      "Elections Commission Officer",
+      "Anti-Corruption Commission (ACC) Investigator",
+      "Judiciary Court Officer",
+      "Human Rights Commission (HRCM) Officer",
+      "Auditor General Staff",
+      "Judicial Service Commission Officer"
     ],
-    nationalSignificance: "Driving nationwide digital transformation, national payment gateways, island government portals, and modern tech enterprises."
+    nationalSignificance: "Constitutional and independent bodies safeguarding governance, integrity, and rule of law in the Maldives."
   },
   {
-    id: "aviation",
-    name: "Aviation & Logistics",
-    shortName: "Aviation",
-    description: "Seaplane captaincy, international air traffic operations, aircraft maintenance engineering, and inter-atoll logistics.",
-    iconName: "Plane",
+    id: "civil_society",
+    name: "Civil Society / NGOs & International Agencies",
+    shortName: "NGOs & International",
+    description: "Non-profit organizations, community associations, and UN/development agencies (UNDP, WHO, UNICEF).",
+    iconName: "HeartHandshake",
     keyProfessions: [
-      "Seaplane Captain (DHC-6 Twin Otter)",
-      "Commercial First Officer",
-      "Aviation Maintenance Engineer (B1/B2)",
-      "Flight Operations Dispatcher",
-      "Air Traffic Control Officer",
-      "Airport Terminal Operations Lead",
-      "Maritime & Island Cargo Logistics Lead"
+      "NGO Program Manager",
+      "Community Association Coordinator",
+      "UNDP Project Officer",
+      "WHO Health Coordinator",
+      "UNICEF Child Protection Officer",
+      "Non-Profit Operations Manager",
+      "International Development Consultant",
+      "Community Outreach Coordinator"
     ],
-    nationalSignificance: "Operating the world's largest seaplane fleet and connecting isolated coral atolls with rapid airborne mobility."
+    nationalSignificance: "Non-profits, community associations, and UN agencies driving social development and humanitarian programs."
   },
   {
-    id: "culinary",
-    name: "Culinary & Gastronomy",
-    shortName: "Culinary Arts",
-    description: "Fine dining curation, traditional Maldivian seafood mastery, pastry artistry, and executive kitchen management.",
-    iconName: "Utensils",
+    id: "freelance",
+    name: "Freelance, Gig & Self-Employed",
+    shortName: "Freelance & Self-Employed",
+    description: "Independent contractors, creators, freelancers, and local business owners.",
+    iconName: "User",
     keyProfessions: [
-      "Executive Chef",
-      "Head Pastry Chef & Chocolatier",
-      "Maldivian Traditional Gastronomy Specialist",
-      "Executive Sous Chef",
-      "Certified Head Sommelier",
-      "HACCP Food Safety & Hygiene Auditor"
+      "Freelance Graphic Designer",
+      "Independent Software Developer",
+      "Freelance Photographer / Videographer",
+      "Self-Employed Business Owner",
+      "Independent Consultant",
+      "Freelance Content Creator",
+      "Gig Economy Worker",
+      "Independent Tradesperson"
     ],
-    nationalSignificance: "Elevating culinary craftsmanship in international luxury private island restaurants and preserving native gastronomic heritage."
-  },
-  {
-    id: "creative",
-    name: "Creative Arts & Media",
-    shortName: "Creative & Media",
-    description: "Ocean & resort commercial cinematography, brand identity, architectural photography, and digital design.",
-    iconName: "Camera",
-    keyProfessions: [
-      "Commercial Drone & Ocean Cinematographer",
-      "Brand Identity & Creative Director",
-      "Architectural & Resort Photographer",
-      "UI/UX & Product Designer",
-      "Digital Media & Communications Strategist"
-    ],
-    nationalSignificance: "Showcasing the visual narrative of the Maldives to global tourism and luxury lifestyle audiences."
-  },
-  {
-    id: "finance",
-    name: "Finance & Banking",
-    shortName: "Finance & Banking",
-    description: "Islamic banking advisory, corporate resort financing, audit compliance, and investment portfolio analysis.",
-    iconName: "TrendingUp",
-    keyProfessions: [
-      "Islamic Finance Advisory Specialist",
-      "Chief Financial Officer (CFO)",
-      "Corporate Credit Risk Analyst",
-      "Certified Chartered Accountant (ACCA/CIMA)",
-      "Internal Audit & Regulatory Compliance Lead"
-    ],
-    nationalSignificance: "Powering resort capital investments, sovereign bond issuances, Islamic banking solutions, and monetary systems."
-  },
-  {
-    id: "engineering",
-    name: "Architecture & Engineering",
-    shortName: "Architecture & Eng.",
-    description: "Overwater villa architecture, coastal barrier engineering, solar microgrid systems, and marine structures.",
-    iconName: "Building2",
-    keyProfessions: [
-      "Overwater Resort Architect",
-      "Coastal & Marine Civil Engineer",
-      "Renewable Solar Microgrid Specialist",
-      "Structural & Environmental Engineer",
-      "Project Construction Director"
-    ],
-    nationalSignificance: "Designing climate-resilient island infrastructures and bespoke overwater architectural masterpieces."
-  },
-  {
-    id: "healthcare",
-    name: "Healthcare & Wellness",
-    shortName: "Healthcare & Wellness",
-    description: "Hyperbaric decompression medicine, island emergency clinical practice, holistic wellness, and health management.",
-    iconName: "HeartPulse",
-    keyProfessions: [
-      "Hyperbaric & Diving Medicine Specialist",
-      "Island Emergency Clinical Doctor",
-      "Physiotherapist & Sports Rehabilitation Lead",
-      "Ayurvedic & Holistic Wellness Director",
-      "Public Health Epidemiologist"
-    ],
-    nationalSignificance: "Providing vital healthcare services across remote island communities and specialized dive medical safety."
-  },
-  {
-    id: "public_admin",
-    name: "Public Administration & Policy",
-    shortName: "Public Policy",
-    description: "Sovereign diplomacy, environmental policy reform, registry governance, and sustainable island development.",
-    iconName: "Shield",
-    keyProfessions: [
-      "Sustainable Development Policy Advisor",
-      "Public Relations & Diplomatic Attaché",
-      "National Directory Administrator & Verification Officer",
-      "Environmental Impact Assessment (EIA) Lead",
-      "Local Government & Council Governance Specialist"
-    ],
-    nationalSignificance: "Shaping national policy frameworks, environmental protection laws, and international climate advocacy."
+    nationalSignificance: "A growing workforce of independent professionals, creators, and small business owners across the Maldives."
   }
 ];
 
 export const MALDIVES_INDUSTRIES = [
-  "Hospitality & Luxury Resorts",
-  "Marine Science & Diving",
-  "Technology & Software",
-  "Creative Arts & Media",
-  "Finance & Banking",
-  "Aviation & Logistics",
-  "Architecture & Engineering",
-  "Healthcare & Wellness",
-  "Culinary & Gastronomy",
-  "Public Administration & Policy",
+  "Civil Service (CSC)",
+  "State-Owned Enterprises (SOEs) / Public Companies",
+  "Hospitality & Resort Sector",
+  "Private Sector (General Commercial)",
+  "Independent / Statutory Institutions",
+  "Civil Society / NGOs & International Agencies",
+  "Freelance, Gig & Self-Employed",
 ] as const;
 
 export interface AtollInfo {

@@ -1,37 +1,5 @@
 import React, { useState, useRef, useMemo } from "react";
-import {
-  Search,
-  Briefcase,
-  Layers,
-  ArrowRight,
-  Send,
-  Eye,
-  CheckCircle,
-  Award,
-  Star,
-  UserCheck,
-  TrendingUp,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  MapPin,
-  Sparkles,
-  ShieldCheck,
-  FileText,
-  Users,
-  Compass,
-  Building2,
-  ExternalLink,
-  GraduationCap,
-  Waves,
-  Hotel,
-  Code,
-  Plane,
-  Utensils,
-  Camera,
-  HeartPulse,
-  Shield
-} from "lucide-react";
+import { Search, Briefcase, Layers, ArrowRight, Send, Eye, CircleCheck as CheckCircle, Award, Star, UserCheck, TrendingUp, ChevronLeft, ChevronRight, Clock, MapPin, Sparkles, ShieldCheck, FileText, Users, Compass, Building2, ExternalLink, GraduationCap, Waves, Hotel, Code, Plane, Utensils, Camera, HeartPulse, Shield } from "lucide-react";
 import { UserProfile, IndustryType } from "../types";
 import { MALDIVES_INDUSTRIES, MALDIVES_INDUSTRIES_DETAILED, IndustrySectorInfo } from "../data/atolls";
 
@@ -229,7 +197,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     </div>
                     <div>
                       <h4 className="font-mono font-bold uppercase tracking-wider text-[#1C1917]">
-                        10 Strategic Industry Sectors
+                        7 Strategic Industry Sectors
                       </h4>
                       <p className="text-[#57534E] font-sans mt-0.5 leading-relaxed">
                         Spanning Luxury Resorts, Marine Conservation, Aviation Piloting, Software Architecture, and Island Craft.
@@ -702,7 +670,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </div>
               <div>
                 <div className="text-2xl sm:text-3xl font-black font-display text-[#C27D38]">
-                  10
+                  7
                 </div>
                 <div className="text-[10px] text-[#A8A29E] uppercase tracking-wider mt-1">
                   Major Industry Sectors

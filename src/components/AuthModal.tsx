@@ -28,7 +28,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [title, setTitle] = useState("");
-  const [industry, setIndustry] = useState<IndustryType>("Hospitality & Luxury Resorts");
+  const [industry, setIndustry] = useState<IndustryType>("Hospitality & Resort Sector");
   const [activeAtolls, setActiveAtolls] = useState<AtollRecord[]>(() => getActiveAtollRegistry());
   const [atoll, setAtoll] = useState(() => {
     const list = getActiveAtollRegistry();

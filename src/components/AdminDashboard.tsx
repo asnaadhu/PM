@@ -1,45 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import {
-  Shield,
-  CheckCircle2,
-  XCircle,
-  Search,
-  Filter,
-  Eye,
-  Edit3,
-  Trash2,
-  Star,
-  Mail,
-  Users,
-  Award,
-  BarChart3,
-  RefreshCw,
-  ExternalLink,
-  Lock,
-  Download,
-  AlertTriangle,
-  FileText,
-  UserCheck,
-  UserX,
-  ChevronRight,
-  Globe,
-  UserPlus,
-  UserCog,
-  TrendingUp,
-  Calendar,
-  MapPin,
-  Activity,
-  CheckSquare,
-  Clock,
-  ArrowUpRight,
-  ShieldAlert,
-  ShieldCheck,
-  Building,
-  Layers,
-  Sparkles,
-  FileSpreadsheet,
-  Briefcase
-} from "lucide-react";
+import { Shield, CircleCheck as CheckCircle2, Circle as XCircle, Search, ListFilter as Filter, Eye, CreditCard as Edit3, Trash2, Star, Mail, Users, Award, ChartBar as BarChart3, RefreshCw, ExternalLink, Lock, Download, TriangleAlert as AlertTriangle, FileText, UserCheck, UserX, ChevronRight, Globe, UserPlus, UserCog, TrendingUp, Calendar, MapPin, Activity, SquareCheck as CheckSquare, Clock, ArrowUpRight, ShieldAlert, ShieldCheck, Building, Layers, Sparkles, FileSpreadsheet, Briefcase } from "lucide-react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -101,7 +61,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     fullName: "",
     email: "",
     title: "National Directory Administrator & Verification Officer",
-    industry: "Public Administration & Policy" as IndustryType,
+    industry: "Civil Service (CSC)" as IndustryType,
     atoll: "Kaafu Atoll (Malé / North & South Malé)",
     island: "Malé City",
     phone: "+960 330-0000",
@@ -220,7 +180,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       fullName: "",
       email: "",
       title: "National Directory Administrator & Verification Officer",
-      industry: "Public Administration & Policy",
+      industry: "Civil Service (CSC)",
       atoll: "Kaafu Atoll (Malé / North & South Malé)",
       island: "Malé City",
       phone: "+960 330-0000",
@@ -430,7 +390,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     allProfiles.forEach((p) => {
       const ind = p.industry || "Other";
       // Shorten label for clean chart presentation
-      const shortInd = ind.replace(" & ", "/").replace("Public Administration", "Public Admin");
+      const shortInd = ind.length > 25 ? ind.slice(0, 25) + "..." : ind;
       counts[shortInd] = (counts[shortInd] || 0) + 1;
     });
     return Object.entries(counts)
