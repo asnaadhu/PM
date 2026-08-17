@@ -1,0 +1,201 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #FAF9F6;
+    color: #2A2A2A;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'DM Serif Display', 'Playfair Display', 'Cinzel', serif;
+    letter-spacing: -0.015em;
+  }
+}
+
+.font-display {
+  font-family: 'DM Serif Display', 'Playfair Display', 'Cinzel', serif;
+}
+
+.font-editorial {
+  font-family: 'DM Serif Display', 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+}
+
+.font-mono-tag {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.font-thaana {
+  font-family: 'Noto Sans Thaana', 'MV Boli', 'Faruma', 'A_Faruma', system-ui, sans-serif;
+  direction: rtl;
+}
+
+/* Warm Parchment Editorial Ambient Background */
+.bg-parchment {
+  background-color: #FAF9F6;
+}
+
+.bg-parchment-card {
+  background-color: #FFFFFF;
+  border-color: #E7E2DA;
+}
+
+.bg-parchment-subtle {
+  background-color: #F4EFEB;
+}
+
+/* Archival Seal & Coordinate Graphic */
+.archival-border {
+  border-color: #E7E2DA;
+}
+
+.saddle-accent {
+  color: #8B4513;
+}
+
+.saddle-bg {
+  background-color: #8B4513;
+}
+
+.saddle-border {
+  border-color: #8B4513;
+}
+
+/* Glassmorphism & Luxury Cards */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid #E7E2DA;
+}
+
+.glass-panel-dark {
+  background: rgba(28, 25, 23, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Global 0.6s smooth interactive transitions & click effects */
+button, 
+a, 
+input, 
+select, 
+textarea, 
+[role="button"],
+.interactive-element {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+              background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+              color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+button:active, 
+a:active, 
+[role="button"]:active {
+  transform: scale(0.96);
+  transition: transform 0.12s ease-out;
+}
+
+/* Elegant Zoom-In & Open animations (0.6s) */
+@keyframes zoomOpenLush {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(8px);
+    filter: blur(3px);
+  }
+  60% {
+    opacity: 0.95;
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0px);
+  }
+}
+
+@keyframes modalZoomOpen {
+  0% {
+    opacity: 0;
+    transform: scale(0.88) translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes slowFadeInBackdrop {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+.animate-zoom-open {
+  animation: zoomOpenLush 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-modal-zoom {
+  animation: modalZoomOpen 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-backdrop-slow {
+  animation: slowFadeInBackdrop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.card-hover-lift {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-hover-lift:hover {
+  transform: translateY(-4px) scale(1.015);
+  box-shadow: 0 16px 36px -8px rgba(139, 69, 19, 0.12);
+}
+
+.card-hover-lift:active {
+  transform: translateY(0) scale(0.97);
+  transition: transform 0.12s ease-out;
+}
+
+/* Custom smooth scrollbar in warm tones */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FAF9F6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D9D2C7;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8B4513;
+}
+
+/* Print specific styles */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  .print\\:hidden {
+    display: none !important;
+  }
+}

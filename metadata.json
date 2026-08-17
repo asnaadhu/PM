@@ -1,0 +1,6 @@
+{
+  "name": "Portfolio Maldives",
+  "description": "Professional portfolio and public CV publishing platform for Maldivian talent and specialists.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
