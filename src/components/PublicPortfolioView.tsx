@@ -39,6 +39,14 @@ interface PublicPortfolioViewProps {
   onOpenAuth: (mode?: "signup" | "signin") => void;
 }
 
+
+/** Accepts "linkedin.com/in/x" or "https://linkedin.com/in/x" and returns a safe absolute URL. */
+function toExternalUrl(value: string): string {
+  const trimmed = value.trim();
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed.replace(/^\/+/, "")}`;
+}
+
 export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({
   profile,
   currentUser,
@@ -272,7 +280,7 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({
               {profile.linkedin && (
                 <div className="flex items-center">
                   <Linkedin className="w-3.5 h-3.5 mr-1 text-[#C27D38]" />
-                  <a href={`https://${profile.linkedin}`} target="_blank" rel="noreferrer" className="hover:underline text-[#FAF9F6]">
+                  <a href={toExternalUrl(profile.linkedin)} target="_blank" rel="noreferrer" className="hover:underline text-[#FAF9F6]">
                     LinkedIn
                   </a>
                 </div>
@@ -280,7 +288,7 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({
               {profile.github && (
                 <div className="flex items-center">
                   <Github className="w-3.5 h-3.5 mr-1 text-[#C27D38]" />
-                  <a href={`https://${profile.github}`} target="_blank" rel="noreferrer" className="hover:underline text-[#FAF9F6]">
+                  <a href={toExternalUrl(profile.github)} target="_blank" rel="noreferrer" className="hover:underline text-[#FAF9F6]">
                     GitHub
                   </a>
                 </div>
@@ -464,8 +472,20 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({
                           {cert.issuer}
                         </p>
                         <p className="text-[10px] font-mono text-[#A8A29E] mt-0.5">
-                          Issued: {cert.issueDate} {cert.credentialId && `• ID: ${cert.credentialId}`}
+                          Issued: {cert.issueDate}
+                          {cert.expiryDate && ` • Expires: ${cert.expiryDate}`}
+                          {cert.credentialId && ` • ID: ${cert.credentialId}`}
                         </p>
+                        {cert.credentialUrl && (
+                          <a
+                            href={toExternalUrl(cert.credentialUrl)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[10px] font-mono font-bold text-[#8B4513] hover:underline"
+                          >
+                            Verify credential ↗
+                          </a>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -566,7 +586,7 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({
                   Languages Spoken
                 </h2>
                 <div className="space-y-2">
-                  {profile.languages.map((l) => (
+                  {(profile.languages || []).map((l) => (
                     <div
                       key={l.id}
                       className="flex justify-between items-center bg-[#FAF9F6] p-3 rounded-lg border border-[#E7E2DA] text-xs font-mono"

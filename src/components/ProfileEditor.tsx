@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Save, Globe, Sparkles, Plus, Trash2, MapPin, Briefcase, GraduationCap, Award, Layers, CircleCheck as CheckCircle, Eye, Upload, Download, Palette, User } from "lucide-react";
-import { UserProfile, IndustryType, ThemeType, Experience, ProjectItem, SkillItem, Education, Certification, AtollRecord } from "../types";
+import { UserProfile, IndustryType, ThemeType, Experience, ProjectItem, SkillItem, Education, Certification, AtollRecord, LanguageItem, AwardItem } from "../types";
 import { MALDIVES_INDUSTRIES, getActiveAtollRegistry } from "../data/atolls";
 import { aiEnhanceBio, aiSuggestSkills } from "../services/api";
 import { PositionSelector } from "./PositionSelector";
@@ -220,6 +220,33 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({
     updateField("certifications", [...profile.certifications, newCert]);
   };
 
+  // Languages handlers
+  const languages = profile.languages || [];
+  const updateLanguage = (id: string, patch: Partial<LanguageItem>) =>
+    updateField("languages", languages.map((l) => (l.id === id ? { ...l, ...patch } : l)));
+
+  // Awards handlers
+  const awards = profile.awards || [];
+  const updateAward = (id: string, patch: Partial<AwardItem>) =>
+    updateField("awards", awards.map((a) => (a.id === id ? { ...a, ...patch } : a)));
+
+  // Certification & education patch helpers
+  const updateCertification = (id: string, patch: Partial<Certification>) =>
+    updateField("certifications", profile.certifications.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+  const updateEducation = (id: string, patch: Partial<Education>) =>
+    updateField("education", profile.education.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+  const addEducation = () => {
+    const newEdu: Education = {
+      id: `edu_${Date.now()}`,
+      degree: "",
+      institution: "",
+      fieldOfStudy: "",
+      startYear: "",
+      endYear: "",
+    };
+    updateField("education", [...profile.education, newEdu]);
+  };
+
   // Export JSON
   const handleExportJson = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profile, null, 2));
@@ -375,7 +402,7 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({
                 { id: "experience", label: "3. Work Experience", icon: Briefcase },
                 { id: "projects", label: "4. Portfolio Projects", icon: Layers },
                 { id: "skills", label: "5. Skills & Languages", icon: CheckCircle },
-                { id: "certifications", label: "6. Certifications", icon: Award },
+                { id: "certifications", label: "6. Certifications & Awards", icon: Award },
                 { id: "education", label: "7. Education", icon: GraduationCap },
                 { id: "theme", label: "8. Theme & Layout", icon: Palette },
               ].map((tab) => {
@@ -629,6 +656,26 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({
                         onChange={(e) => updateField("website", e.target.value)}
                         className="w-full px-3.5 py-2 bg-[#FAF9F6] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
                         placeholder="https://..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-mono uppercase font-bold text-[#57534E] mb-1">LinkedIn</label>
+                      <input
+                        type="text"
+                        value={profile.linkedin || ""}
+                        onChange={(e) => updateField("linkedin", e.target.value)}
+                        className="w-full px-3.5 py-2 bg-[#FAF9F6] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
+                        placeholder="linkedin.com/in/your-name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-mono uppercase font-bold text-[#57534E] mb-1">GitHub</label>
+                      <input
+                        type="text"
+                        value={profile.github || ""}
+                        onChange={(e) => updateField("github", e.target.value)}
+                        className="w-full px-3.5 py-2 bg-[#FAF9F6] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
+                        placeholder="github.com/your-handle"
                       />
                     </div>
                   </div>
@@ -1036,6 +1083,58 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({
                     <span>Add Custom Skill</span>
                   </button>
                 </div>
+
+                {/* Languages */}
+                <div className="space-y-2.5 pt-4 border-t border-[#E7E2DA]">
+                  <div>
+                    <h3 className="text-sm font-black text-[#1C1917] font-display">Languages</h3>
+                    <p className="text-xs font-mono text-[#78716C] mt-0.5">
+                      Dhivehi, English, and any other languages you work in.
+                    </p>
+                  </div>
+                  {languages.map((lang) => (
+                    <div key={lang.id} className="flex items-center gap-3 p-3 bg-[#FAF9F6] rounded-md border border-[#E7E2DA]">
+                      <input
+                        type="text"
+                        value={lang.language}
+                        onChange={(e) => updateLanguage(lang.id, { language: e.target.value })}
+                        placeholder="Language"
+                        aria-label="Language"
+                        className="flex-1 min-w-0 px-3 py-1.5 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono font-bold text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
+                      />
+                      <select
+                        value={lang.fluency}
+                        onChange={(e) => updateLanguage(lang.id, { fluency: e.target.value as LanguageItem["fluency"] })}
+                        aria-label="Fluency"
+                        className="px-2.5 py-1.5 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono font-semibold text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
+                      >
+                        <option value="Native / Mother Tongue">Native</option>
+                        <option value="Fluent / Bilingual">Fluent</option>
+                        <option value="Professional Working">Professional</option>
+                        <option value="Conversational">Conversational</option>
+                      </select>
+                      <button
+                        onClick={() => updateField("languages", languages.filter((l) => l.id !== lang.id))}
+                        aria-label="Remove language"
+                        className="p-1 text-[#78716C] hover:text-rose-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() =>
+                      updateField("languages", [
+                        ...languages,
+                        { id: `lang_${Date.now()}`, language: "", fluency: "Professional Working" },
+                      ])
+                    }
+                    className="w-full py-2 border-2 border-dashed border-[#E7E2DA] rounded-md text-xs font-mono font-bold text-[#57534E] hover:border-[#8B4513] hover:text-[#8B4513] flex items-center justify-center gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Language</span>
+                  </button>
+                </div>
               </div>
             )}
 
@@ -1083,32 +1182,126 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({
                         <input
                           type="text"
                           value={cert.name}
-                          onChange={(e) =>
-                            updateField(
-                              "certifications",
-                              profile.certifications.map((c) =>
-                                c.id === cert.id ? { ...c, name: e.target.value } : c
-                              )
-                            )
-                          }
+                          onChange={(e) => updateCertification(cert.id, { name: e.target.value })}
                           placeholder="Certification Name"
+                          aria-label="Certification name"
                           className="px-3 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono font-bold text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
                         />
                         <input
                           type="text"
                           value={cert.issuer}
-                          onChange={(e) =>
-                            updateField(
-                              "certifications",
-                              profile.certifications.map((c) =>
-                                c.id === cert.id ? { ...c, issuer: e.target.value } : c
-                              )
-                            )
-                          }
+                          onChange={(e) => updateCertification(cert.id, { issuer: e.target.value })}
                           placeholder="Issuer (e.g. PADI, AWS)"
+                          aria-label="Issuer"
+                          className="px-3 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
+                        />
+                        <label className="text-[10px] font-mono uppercase font-bold text-[#57534E]">
+                          Issued
+                          <input
+                            type="month"
+                            value={cert.issueDate || ""}
+                            onChange={(e) => updateCertification(cert.id, { issueDate: e.target.value })}
+                            className="mt-1 w-full px-3 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
+                          />
+                        </label>
+                        <label className="text-[10px] font-mono uppercase font-bold text-[#57534E]">
+                          Expires (optional)
+                          <input
+                            type="month"
+                            value={cert.expiryDate || ""}
+                            onChange={(e) => updateCertification(cert.id, { expiryDate: e.target.value || undefined })}
+                            className="mt-1 w-full px-3 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
+                          />
+                        </label>
+                        <input
+                          type="text"
+                          value={cert.credentialId || ""}
+                          onChange={(e) => updateCertification(cert.id, { credentialId: e.target.value || undefined })}
+                          placeholder="Credential ID (optional)"
+                          aria-label="Credential ID"
+                          className="px-3 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
+                        />
+                        <input
+                          type="url"
+                          value={cert.credentialUrl || ""}
+                          onChange={(e) => updateCertification(cert.id, { credentialUrl: e.target.value || undefined })}
+                          placeholder="Verification URL (optional)"
+                          aria-label="Verification URL"
                           className="px-3 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
                         />
                       </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Awards & Honours */}
+                <div className="space-y-3 pt-4 border-t border-[#E7E2DA]">
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <h3 className="text-sm font-black text-[#1C1917] font-display">Awards & Honours</h3>
+                      <p className="text-xs font-mono text-[#78716C] mt-0.5">
+                        Industry awards, employee recognition, and national honours.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() =>
+                        updateField("awards", [
+                          ...awards,
+                          { id: `award_${Date.now()}`, title: "", issuer: "", year: String(new Date().getFullYear()) },
+                        ])
+                      }
+                      className="px-3 py-1.5 bg-[#8B4513] hover:bg-[#73380F] text-white rounded-md text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-2xs shrink-0"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Award</span>
+                    </button>
+                  </div>
+                  {awards.map((aw) => (
+                    <div key={aw.id} className="p-4 bg-[#FAF9F6] rounded-md border border-[#E7E2DA] space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-display font-bold text-[#1C1917]">{aw.title || "New award"}</span>
+                        <button
+                          onClick={() => updateField("awards", awards.filter((a) => a.id !== aw.id))}
+                          className="text-xs font-mono text-rose-700 hover:text-rose-900 font-bold"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-[2fr_2fr_1fr] gap-3">
+                        <input
+                          type="text"
+                          value={aw.title}
+                          onChange={(e) => updateAward(aw.id, { title: e.target.value })}
+                          placeholder="Award title"
+                          aria-label="Award title"
+                          className="px-3 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono font-bold text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
+                        />
+                        <input
+                          type="text"
+                          value={aw.issuer}
+                          onChange={(e) => updateAward(aw.id, { issuer: e.target.value })}
+                          placeholder="Awarded by"
+                          aria-label="Awarded by"
+                          className="px-3 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
+                        />
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={aw.year}
+                          onChange={(e) => updateAward(aw.id, { year: e.target.value })}
+                          placeholder="Year"
+                          aria-label="Year"
+                          className="px-3 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
+                        />
+                      </div>
+                      <textarea
+                        value={aw.description || ""}
+                        onChange={(e) => updateAward(aw.id, { description: e.target.value || undefined })}
+                        placeholder="Short description (optional)"
+                        aria-label="Award description"
+                        rows={2}
+                        className="w-full px-3 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
+                      />
                     </div>
                   ))}
                 </div>
@@ -1118,45 +1311,95 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({
             {/* TAB 7: EDUCATION */}
             {activeTab === "education" && (
               <div className="space-y-4">
-                <div>
-                  <h2 className="text-lg font-black text-[#1C1917] font-display">
-                    Education & Qualifications
-                  </h2>
-                  <p className="text-xs font-mono text-[#78716C] mt-0.5">
-                    Your degrees, universities, and academic honours.
-                  </p>
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <h2 className="text-lg font-black text-[#1C1917] font-display">
+                      Education & Qualifications
+                    </h2>
+                    <p className="text-xs font-mono text-[#78716C] mt-0.5">
+                      Your degrees, universities, and academic honours.
+                    </p>
+                  </div>
+                  <button
+                    onClick={addEducation}
+                    className="px-3 py-1.5 bg-[#8B4513] hover:bg-[#73380F] text-white rounded-md text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-2xs shrink-0"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Education</span>
+                  </button>
                 </div>
 
                 <div className="space-y-3">
                   {profile.education.map((edu) => (
                     <div key={edu.id} className="p-4 bg-[#FAF9F6] rounded-md border border-[#E7E2DA] space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-display font-bold text-[#1C1917]">{edu.degree || "New qualification"}</span>
+                        <button
+                          onClick={() => updateField("education", profile.education.filter((item) => item.id !== edu.id))}
+                          className="text-xs font-mono text-rose-700 hover:text-rose-900 font-bold"
+                        >
+                          Remove
+                        </button>
+                      </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <input
                           type="text"
                           value={edu.degree}
-                          onChange={(e) =>
-                            updateField(
-                              "education",
-                              profile.education.map((item) =>
-                                item.id === edu.id ? { ...item, degree: e.target.value } : item
-                              )
-                            )
-                          }
+                          onChange={(e) => updateEducation(edu.id, { degree: e.target.value })}
                           placeholder="Degree / Qualification"
+                          aria-label="Degree"
                           className="px-3 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono font-bold text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
                         />
                         <input
                           type="text"
                           value={edu.institution}
-                          onChange={(e) =>
-                            updateField(
-                              "education",
-                              profile.education.map((item) =>
-                                item.id === edu.id ? { ...item, institution: e.target.value } : item
-                              )
-                            )
-                          }
+                          onChange={(e) => updateEducation(edu.id, { institution: e.target.value })}
                           placeholder="Institution / University"
+                          aria-label="Institution"
+                          className="px-3 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
+                        />
+                        <input
+                          type="text"
+                          value={edu.fieldOfStudy || ""}
+                          onChange={(e) => updateEducation(edu.id, { fieldOfStudy: e.target.value })}
+                          placeholder="Field of study"
+                          aria-label="Field of study"
+                          className="px-3 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
+                        />
+                        <input
+                          type="text"
+                          value={edu.location || ""}
+                          onChange={(e) => updateEducation(edu.id, { location: e.target.value || undefined })}
+                          placeholder="Location (optional)"
+                          aria-label="Location"
+                          className="px-3 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
+                        />
+                        <div className="grid grid-cols-2 gap-3">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={edu.startYear || ""}
+                            onChange={(e) => updateEducation(edu.id, { startYear: e.target.value })}
+                            placeholder="Start year"
+                            aria-label="Start year"
+                            className="px-3 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
+                          />
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={edu.endYear || ""}
+                            onChange={(e) => updateEducation(edu.id, { endYear: e.target.value })}
+                            placeholder="End year"
+                            aria-label="End year"
+                            className="px-3 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={edu.honors || ""}
+                          onChange={(e) => updateEducation(edu.id, { honors: e.target.value || undefined })}
+                          placeholder="Honours / distinction (optional)"
+                          aria-label="Honours"
                           className="px-3 py-2 bg-[#FFFFFF] border border-[#E7E2DA] rounded-md text-xs font-mono text-[#1C1917] focus:outline-hidden focus:border-[#8B4513]"
                         />
                       </div>

@@ -3,7 +3,7 @@ import { X, UserPlus, LogIn, Globe, ShieldCheck, Shield, CircleCheck as CheckCir
 import { motion, AnimatePresence } from "motion/react";
 import { UserProfile, IndustryType, AtollRecord } from "../types";
 import { MALDIVES_INDUSTRIES, getActiveAtollRegistry } from "../data/atolls";
-import { DEFAULT_ADMIN_PROFILE } from "../services/api";
+import { DEFAULT_ADMIN_PROFILE, adminLogin } from "../services/api";
 import { PositionSelector } from "./PositionSelector";
 
 interface AuthModalProps {
@@ -54,7 +54,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     return atollObj ? atollObj.islands.map((i) => i.name) : ["Malé", "Hulhumalé"];
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
@@ -149,6 +149,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         entered === "national-registry-admin";
 
       if (isAdminLogin) {
+        if (!password) {
+          setErrorMessage("Enter the administrator password to access the registry dashboard.");
+          return;
+        }
+        const result = await adminLogin(password);
+        if (!result.ok) {
+          setErrorMessage(result.error || "Incorrect administrator password.");
+          return;
+        }
         const adminMatch = allProfiles.find((p) => p.role === "admin" || p.slug === "national-registry-admin") || DEFAULT_ADMIN_PROFILE;
         onLogin(adminMatch);
         onClose();
@@ -428,7 +437,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   {/* Admin Account */}
                   <button
                     type="button"
-                    onClick={() => handleQuickLoginAs(DEFAULT_ADMIN_PROFILE)}
+                    onClick={() => {
+                      setAuthMode("signin");
+                      setEmail(DEFAULT_ADMIN_PROFILE.email);
+                      setErrorMessage("Enter the administrator password above, then press Sign In.");
+                    }}
                     className="flex items-center space-x-2 p-2 rounded-md border border-[#DCD5CB] bg-[#F2ECE4] hover:border-[#1C1917] hover:bg-[#E7E2DA] text-left transition-colors sm:col-span-2"
                   >
                     <div className="w-6 h-6 rounded-full bg-[#1C1917] text-[#C27D38] flex items-center justify-center shrink-0">

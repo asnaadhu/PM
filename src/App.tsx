@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
 import {
   Routes,
   Route,
@@ -21,17 +21,31 @@ import {
   saveProfileDraft,
   DEFAULT_ADMIN_PROFILE,
   isAdminUser,
+  clearAdminSession,
 } from "./services/api";
 import { Navbar } from "./components/Navbar";
 import { HomeView } from "./components/HomeView";
-import { DirectoryView } from "./components/DirectoryView";
-import { PublicPortfolioView } from "./components/PublicPortfolioView";
-import { ProfileEditor } from "./components/ProfileEditor";
-import { PrintResumeView } from "./components/PrintResumeView";
 import { AiAssistantModal } from "./components/AiAssistantModal";
 import { ContactModal } from "./components/ContactModal";
+
+// Route-level code splitting: heavier screens load on demand.
+const DirectoryView = lazy(() => import("./components/DirectoryView").then((m) => ({ default: m.DirectoryView })));
+const PublicPortfolioView = lazy(() =>
+  import("./components/PublicPortfolioView").then((m) => ({ default: m.PublicPortfolioView }))
+);
+const ProfileEditor = lazy(() => import("./components/ProfileEditor").then((m) => ({ default: m.ProfileEditor })));
+const PrintResumeView = lazy(() => import("./components/PrintResumeView").then((m) => ({ default: m.PrintResumeView })));
+const AdminDashboard = lazy(() => import("./components/AdminDashboard").then((m) => ({ default: m.AdminDashboard })));
+
+function RouteFallback() {
+  return (
+    <div className="flex-1 flex items-center justify-center py-24" role="status" aria-live="polite">
+      <div className="w-6 h-6 border-2 border-[#E7E2DA] border-t-[#8B4513] rounded-full animate-spin" />
+      <span className="sr-only">Loading…</span>
+    </div>
+  );
+}
 import { AuthModal } from "./components/AuthModal";
-import { AdminDashboard } from "./components/AdminDashboard";
 
 // Reserved route names that shouldn't be matched as dynamic user slugs on the root path
 const RESERVED_PATHS = new Set([
@@ -213,6 +227,7 @@ export default function App() {
   const handleSignOut = () => {
     setAuthSlug(null);
     setAuthenticatedUserSlug(null);
+    clearAdminSession();
     navigate("/");
   };
 
@@ -435,6 +450,7 @@ export default function App() {
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="flex-1 flex flex-col"
           >
+            <Suspense fallback={<RouteFallback />}>
             <Routes location={location}>
               {/* Root Home Route */}
               <Route
@@ -555,6 +571,7 @@ export default function App() {
               {/* Catch-all fallback */}
               <Route path="*" element={<Navigate to="/directory" replace />} />
             </Routes>
+            </Suspense>
           </motion.div>
         </AnimatePresence>
       </div>
