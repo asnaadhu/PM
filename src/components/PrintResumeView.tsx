@@ -152,7 +152,7 @@ export const PrintResumeView: React.FC<PrintResumeViewProps> = ({ profile, onBac
             </div>
             <div>
               <strong className="text-[#1C1917]">Languages: </strong>
-              {profile.languages.map((l) => `${l.language} (${l.fluency})`).join(" • ")}
+              {(profile.languages || []).map((l) => `${l.language} (${l.fluency})`).join(" • ")}
             </div>
             {profile.awards && profile.awards.length > 0 && (
               <div>

@@ -1,5 +1,9 @@
-import express from "express";
+import express, { type NextFunction, type Request, type Response } from "express";
 import path from "path";
+import { createStore } from "./server/store";
+import { requireAdmin, issueAdminToken, verifyAdminPassword, adminAuthStatus } from "./server/auth";
+import { rateLimit } from "./server/rateLimit";
+import { clean, cleanSlug } from "./server/sanitize";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
@@ -7,7 +11,10 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
+const isProduction = process.env.NODE_ENV === "production";
+
+app.disable("x-powered-by");
 
 app.use(express.json({ limit: "10mb" }));
 
@@ -69,20 +76,23 @@ async function generateContentWithFallback(
   throw lastError || new Error("All candidate Gemini models were temporarily unavailable.");
 }
 
-// In-memory published portfolios storage (synced with client updates)
-const publishedPortfolios = new Map<string, any>();
+// Persistent storage for published portfolios and contact inquiries (JSON file on disk)
+const store = createStore(process.env.DATA_DIR || path.join(process.cwd(), "data"));
+const publishedPortfolios = store.portfolios;
+const inquiries = store.inquiries;
 
-// In-memory contact inquiries
-const inquiries: Array<{
-  id: string;
-  portfolioSlug: string;
-  senderName: string;
-  senderEmail: string;
-  senderCompany?: string;
-  subject: string;
-  message: string;
-  createdAt: string;
-}> = [];
+// Basic security headers for every response
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  next();
+});
+
+const aiLimiter = rateLimit({ windowMs: 60_000, max: 20, name: "ai" });
+const writeLimiter = rateLimit({ windowMs: 60_000, max: 30, name: "write" });
+const seedLimiter = rateLimit({ windowMs: 60_000, max: 120, name: "sync" });
+const loginLimiter = rateLimit({ windowMs: 15 * 60_000, max: 10, name: "admin-login" });
 
 // API: Health check
 app.get("/api/health", (req, res) => {
@@ -90,6 +100,8 @@ app.get("/api/health", (req, res) => {
     status: "ok",
     service: "Portfolio Maldives API",
     geminiConfigured: Boolean(process.env.GEMINI_API_KEY),
+    adminAuth: adminAuthStatus(),
+    portfolios: publishedPortfolios.size,
     timestamp: new Date().toISOString(),
   });
 });
@@ -102,43 +114,56 @@ app.get("/api/portfolios", (req, res) => {
 
 // API: Get portfolio by slug
 app.get("/api/portfolios/:slug", (req, res) => {
-  const { slug } = req.params;
+  const slug = cleanSlug(req.params.slug);
   const portfolio = publishedPortfolios.get(slug);
   if (!portfolio) {
     return res.status(404).json({ error: "Portfolio not found" });
   }
   portfolio.viewsCount = (portfolio.viewsCount || 0) + 1;
-  publishedPortfolios.set(slug, portfolio);
+  store.savePortfolio(slug, portfolio);
   res.json({ portfolio });
 });
 
 // API: Publish or update portfolio
-app.post("/api/portfolios/publish", (req, res) => {
+app.post("/api/portfolios/publish", writeLimiter, (req, res) => {
   const profileData = req.body;
-  if (!profileData || !profileData.slug || !profileData.fullName) {
+  if (!profileData || typeof profileData.slug !== "string" || !profileData.fullName) {
     return res.status(400).json({ error: "Invalid profile data. Slug and Full Name are required." });
   }
 
-  const slug = profileData.slug.toLowerCase().trim().replace(/[^a-z0-9-]/g, "-");
+  const slug = cleanSlug(profileData.slug);
+  if (!slug) {
+    return res.status(400).json({ error: "Invalid slug." });
+  }
+  const existing = publishedPortfolios.get(slug);
+
   const updatedProfile = {
     ...profileData,
     slug,
+    // Moderation fields are controlled by administrators only and cannot be set by a publish request.
+    role: existing?.role ?? "user",
+    verified: existing?.verified ?? false,
+    isVerified: existing?.isVerified ?? false,
+    isFeatured: existing?.isFeatured ?? false,
+    status: existing?.status ?? "active",
+    viewsCount: existing?.viewsCount ?? profileData.viewsCount ?? 0,
     isPublished: true,
-    publishedAt: profileData.publishedAt || new Date().toISOString(),
+    publishedAt: existing?.publishedAt || profileData.publishedAt || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
 
-  publishedPortfolios.set(slug, updatedProfile);
+  store.savePortfolio(slug, updatedProfile);
   res.json({ success: true, slug, portfolio: updatedProfile });
 });
 
-// API: Sync initial profiles from client seed
-app.post("/api/portfolios/sync-seed", (req, res) => {
-  const { profiles } = req.body;
+// API: Sync initial profiles from client seed (only adds slugs the server has never seen)
+app.post("/api/portfolios/sync-seed", seedLimiter, (req, res) => {
+  const { profiles } = req.body || {};
   if (Array.isArray(profiles)) {
-    for (const p of profiles) {
-      if (p.slug && !publishedPortfolios.has(p.slug)) {
-        publishedPortfolios.set(p.slug, p);
+    for (const p of profiles.slice(0, 200)) {
+      const slug = typeof p?.slug === "string" ? cleanSlug(p.slug) : "";
+      if (slug && !publishedPortfolios.has(slug) && p.role !== "admin") {
+        store.savePortfolio(slug, { ...p, slug });
       }
     }
   }
@@ -146,24 +171,27 @@ app.post("/api/portfolios/sync-seed", (req, res) => {
 });
 
 // API: Send contact inquiry
-app.post("/api/portfolios/inquiry", (req, res) => {
-  const { portfolioSlug, senderName, senderEmail, senderCompany, subject, message } = req.body;
+app.post("/api/portfolios/inquiry", writeLimiter, (req, res) => {
+  const { portfolioSlug, senderName, senderEmail, senderCompany, subject, message } = req.body || {};
   if (!portfolioSlug || !senderName || !senderEmail || !message) {
     return res.status(400).json({ error: "Missing required contact inquiry fields." });
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(senderEmail))) {
+    return res.status(400).json({ error: "Please provide a valid email address." });
   }
 
   const newInquiry = {
     id: "inq_" + Math.random().toString(36).substring(2, 9),
-    portfolioSlug,
-    senderName,
-    senderEmail,
-    senderCompany,
-    subject: subject || "Portfolio Maldives Inquiry",
-    message,
+    portfolioSlug: cleanSlug(portfolioSlug),
+    senderName: clean(senderName, 120),
+    senderEmail: clean(senderEmail, 200),
+    senderCompany: senderCompany ? clean(senderCompany, 160) : undefined,
+    subject: clean(subject, 200) || "Portfolio Maldives Inquiry",
+    message: clean(message, 5000),
     createdAt: new Date().toISOString(),
   };
 
-  inquiries.push(newInquiry);
+  store.addInquiry(newInquiry);
   res.json({
     success: true,
     message: `Inquiry successfully delivered to the professional's Portfolio Maldives inbox.`,
@@ -171,93 +199,88 @@ app.post("/api/portfolios/inquiry", (req, res) => {
   });
 });
 
+// ADMIN API: Sign in with the administrator password and receive a signed session token
+app.post("/api/admin/login", loginLimiter, (req, res) => {
+  const { password } = req.body || {};
+  const result = verifyAdminPassword(typeof password === "string" ? password : "");
+  if ("error" in result) {
+    return res.status(result.status).json({ error: result.error });
+  }
+  res.json({ success: true, ...issueAdminToken() });
+});
+
+// Every other /api/admin route requires a valid admin token
+app.use("/api/admin", requireAdmin);
+
 // ADMIN API: Get all inquiries
 app.get("/api/admin/inquiries", (req, res) => {
   res.json({ inquiries: inquiries.slice().reverse(), count: inquiries.length });
 });
 
-// ADMIN API: Verify / Unverify specialist
-app.post("/api/admin/verify", (req, res) => {
-  const { slug, verified } = req.body;
+function updateProfile(req: Request, res: Response, mutate: (profile: any) => void) {
+  const slug = cleanSlug(req.body?.slug);
   if (!slug) {
     return res.status(400).json({ error: "Slug is required." });
   }
-
   const profile = publishedPortfolios.get(slug);
-  if (profile) {
-    profile.verified = Boolean(verified);
-    profile.isVerified = Boolean(verified);
-    profile.updatedAt = new Date().toISOString();
-    publishedPortfolios.set(slug, profile);
-    return res.json({ success: true, profile });
+  if (!profile) {
+    return res.status(404).json({ error: "Profile not found" });
   }
+  mutate(profile);
+  profile.updatedAt = new Date().toISOString();
+  store.savePortfolio(slug, profile);
+  return res.json({ success: true, profile });
+}
 
-  res.status(404).json({ error: "Profile not found" });
+// ADMIN API: Verify / Unverify specialist
+app.post("/api/admin/verify", (req, res) => {
+  updateProfile(req, res, (profile) => {
+    profile.verified = Boolean(req.body.verified);
+    profile.isVerified = Boolean(req.body.verified);
+  });
 });
 
 // ADMIN API: Feature / Unfeature specialist
 app.post("/api/admin/feature", (req, res) => {
-  const { slug, isFeatured } = req.body;
-  if (!slug) {
-    return res.status(400).json({ error: "Slug is required." });
-  }
-
-  const profile = publishedPortfolios.get(slug);
-  if (profile) {
-    profile.isFeatured = Boolean(isFeatured);
-    profile.updatedAt = new Date().toISOString();
-    publishedPortfolios.set(slug, profile);
-    return res.json({ success: true, profile });
-  }
-
-  res.status(404).json({ error: "Profile not found" });
+  updateProfile(req, res, (profile) => {
+    profile.isFeatured = Boolean(req.body.isFeatured);
+  });
 });
 
 // ADMIN API: Moderate / Status update
 app.post("/api/admin/status", (req, res) => {
-  const { slug, status, isPublished } = req.body;
-  if (!slug) {
-    return res.status(400).json({ error: "Slug is required." });
+  const { status, isPublished } = req.body || {};
+  if (status !== undefined && !["active", "pending_review", "suspended"].includes(status)) {
+    return res.status(400).json({ error: "Invalid status." });
   }
-
-  const profile = publishedPortfolios.get(slug);
-  if (profile) {
+  updateProfile(req, res, (profile) => {
     if (status !== undefined) profile.status = status;
     if (isPublished !== undefined) profile.isPublished = Boolean(isPublished);
-    profile.updatedAt = new Date().toISOString();
-    publishedPortfolios.set(slug, profile);
-    return res.json({ success: true, profile });
-  }
-
-  res.status(404).json({ error: "Profile not found" });
+  });
 });
 
 // ADMIN API: Update user role (admin vs user)
 app.post("/api/admin/user-role", (req, res) => {
-  const { slug, role } = req.body;
-  if (!slug || !role) {
-    return res.status(400).json({ error: "Slug and role are required." });
+  const { role } = req.body || {};
+  if (role !== "admin" && role !== "user") {
+    return res.status(400).json({ error: "Role must be 'admin' or 'user'." });
   }
-
-  const profile = publishedPortfolios.get(slug);
-  if (profile) {
+  updateProfile(req, res, (profile) => {
     profile.role = role;
-    profile.updatedAt = new Date().toISOString();
-    publishedPortfolios.set(slug, profile);
-    return res.json({ success: true, profile });
-  }
-
-  res.status(404).json({ error: "Profile not found" });
+  });
 });
 
 // ADMIN API: Provision new user/admin
 app.post("/api/admin/create-user", (req, res) => {
   const profileData = req.body;
-  if (!profileData || !profileData.slug || !profileData.fullName) {
+  if (!profileData || typeof profileData.slug !== "string" || !profileData.fullName) {
     return res.status(400).json({ error: "Slug and full name are required." });
   }
 
-  const slug = profileData.slug.toLowerCase().trim();
+  const slug = cleanSlug(profileData.slug);
+  if (!slug) {
+    return res.status(400).json({ error: "Invalid slug." });
+  }
   const newProfile = {
     ...profileData,
     slug,
@@ -267,19 +290,18 @@ app.post("/api/admin/create-user", (req, res) => {
     updatedAt: new Date().toISOString(),
   };
 
-  publishedPortfolios.set(slug, newProfile);
+  store.savePortfolio(slug, newProfile);
   res.json({ success: true, profile: newProfile });
 });
 
 // ADMIN API: Delete specialist profile
 app.delete("/api/admin/portfolios/:slug", (req, res) => {
-  const { slug } = req.params;
+  const slug = cleanSlug(req.params.slug);
   if (!slug) {
     return res.status(400).json({ error: "Slug is required." });
   }
 
-  if (publishedPortfolios.has(slug)) {
-    publishedPortfolios.delete(slug);
+  if (store.deletePortfolio(slug)) {
     return res.json({ success: true, message: `Profile ${slug} removed by administrator.` });
   }
 
@@ -287,8 +309,15 @@ app.delete("/api/admin/portfolios/:slug", (req, res) => {
 });
 
 // API: AI Bio Enhancer
-app.post("/api/ai/enhance-bio", async (req, res) => {
-  const { fullName, currentTitle, industry, atoll, rawBio, keyStrengths, tone } = req.body;
+app.post("/api/ai/enhance-bio", aiLimiter, async (req, res) => {
+  const body = req.body || {};
+  const fullName = clean(body.fullName, 120);
+  const currentTitle = clean(body.currentTitle, 160);
+  const industry = clean(body.industry, 160);
+  const atoll = clean(body.atoll, 120);
+  const rawBio = clean(body.rawBio, 3000);
+  const keyStrengths = clean(body.keyStrengths, 1000);
+  const tone = clean(body.tone, 80);
 
   const fallbackBio = `${fullName || "The professional"} is an accomplished ${currentTitle || "specialist"} based in ${atoll || "the Maldives"}, bringing deep domain expertise across ${industry || "key sectors"}. Known for strategic precision, high-impact contributions, and consistent leadership throughout island operations and enterprise projects.${rawBio ? "\n\n" + rawBio : ""}`;
 
@@ -332,8 +361,12 @@ Requirements:
 });
 
 // API: AI Bullet Point Enhancer
-app.post("/api/ai/enhance-bullet", async (req, res) => {
-  const { role, company, rawBullet, industry } = req.body;
+app.post("/api/ai/enhance-bullet", aiLimiter, async (req, res) => {
+  const body = req.body || {};
+  const role = clean(body.role, 160);
+  const company = clean(body.company, 160);
+  const rawBullet = clean(body.rawBullet, 1000);
+  const industry = clean(body.industry, 160);
 
   const fallbackBullets = [
     `Spearheaded core operations as ${role || "Specialist"} at ${company || "Maldivian Organization"}, achieving measurable efficiency and elevated performance across ${industry || "key projects"}.`,
@@ -365,7 +398,9 @@ Example format:
 
     let suggestions: string[] = [];
     try {
-      suggestions = JSON.parse(response.text || "[]");
+      const parsed = JSON.parse(response.text || "[]");
+      suggestions = Array.isArray(parsed) ? parsed.filter((x) => typeof x === "string").slice(0, 4) : [];
+      if (suggestions.length === 0) suggestions = fallbackBullets;
     } catch {
       suggestions = [response.text?.trim() || rawBullet];
     }
@@ -378,8 +413,10 @@ Example format:
 });
 
 // API: AI Skill and Certification Advisor
-app.post("/api/ai/suggest-skills", async (req, res) => {
-  const { industry, title } = req.body;
+app.post("/api/ai/suggest-skills", aiLimiter, async (req, res) => {
+  const body = req.body || {};
+  const industry = clean(body.industry, 160);
+  const title = clean(body.title, 160);
 
   const fallbackData = {
     skills: ["Strategic Planning", "Project Management", "Team Leadership", "Cross-functional Collaboration", "Industry Operations", "Quality Assurance"],
@@ -421,7 +458,11 @@ Return JSON with this structure:
 
 // Setup Vite or static serving
 async function startServer() {
-  if (process.env.NODE_ENV !== "production") {
+  app.use("/api", (req, res) => {
+    res.status(404).json({ error: "Not found" });
+  });
+
+  if (!isProduction) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -429,7 +470,9 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
+    // Hashed build assets can be cached forever; everything else briefly.
+    app.use("/assets", express.static(path.join(distPath, "assets"), { immutable: true, maxAge: "1y" }));
+    app.use(express.static(distPath, { index: false, maxAge: "1h" }));
     app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });

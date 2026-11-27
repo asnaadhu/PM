@@ -3,6 +3,60 @@ import { INITIAL_PROFILES } from "../data/initialProfiles";
 
 const STORAGE_KEY = "portfolio_maldives_profiles_v1";
 const AUTH_USER_KEY = "portfolio_maldives_auth_user_slug";
+const ADMIN_TOKEN_KEY = "portfolio_maldives_admin_token";
+
+// ---------- Admin session (server-verified) ----------
+
+function readAdminToken(): string | null {
+  try {
+    return sessionStorage.getItem(ADMIN_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function hasAdminSession(): boolean {
+  return Boolean(readAdminToken());
+}
+
+export function clearAdminSession() {
+  try {
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Exchanges the admin password for a short-lived signed token. */
+export async function adminLogin(password: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch("/api/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.token) {
+      try {
+        sessionStorage.setItem(ADMIN_TOKEN_KEY, data.token);
+      } catch {
+        /* ignore */
+      }
+      return { ok: true };
+    }
+    return { ok: false, error: data.error || "Administrator sign-in failed." };
+  } catch {
+    return { ok: false, error: "Could not reach the server to verify administrator credentials." };
+  }
+}
+
+function adminHeaders(): Record<string, string> {
+  const token = readAdminToken();
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
 
 // Initialize localStorage with initial showcase profiles if empty
 export function getLocalProfiles(): UserProfile[] {
@@ -343,13 +397,18 @@ export const DEFAULT_ADMIN_PROFILE: UserProfile = {
 
 export function isAdminUser(profile: UserProfile | null | undefined): boolean {
   if (!profile) return false;
-  return profile.role === "admin" || profile.email.toLowerCase() === "admin@portfoliomaldives.mv" || profile.slug === "national-registry-admin";
+  const isAdminProfile =
+    profile.role === "admin" ||
+    profile.email.toLowerCase() === "admin@portfoliomaldives.mv" ||
+    profile.slug === "national-registry-admin";
+  // Admin tools only unlock once the server has issued a token for this browser session.
+  return isAdminProfile && hasAdminSession();
 }
 
 // ADMIN API: Fetch all contact inquiries across the platform
 export async function fetchAdminInquiries(): Promise<ContactInquiry[]> {
   try {
-    const res = await fetch("/api/admin/inquiries");
+    const res = await fetch("/api/admin/inquiries", { headers: adminHeaders() });
     if (res.ok) {
       const data = await res.json();
       return data.inquiries || [];
@@ -376,7 +435,7 @@ export async function adminVerifyProfile(slug: string, verified: boolean): Promi
   try {
     const res = await fetch("/api/admin/verify", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: adminHeaders(),
       body: JSON.stringify({ slug, verified }),
     });
     if (res.ok) {
@@ -403,7 +462,7 @@ export async function adminFeatureProfile(slug: string, isFeatured: boolean): Pr
   try {
     const res = await fetch("/api/admin/feature", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: adminHeaders(),
       body: JSON.stringify({ slug, isFeatured }),
     });
     if (res.ok) {
@@ -435,7 +494,7 @@ export async function adminSetStatus(
   try {
     const res = await fetch("/api/admin/status", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: adminHeaders(),
       body: JSON.stringify({ slug, status, isPublished }),
     });
     if (res.ok) {
@@ -462,7 +521,7 @@ export async function adminUpdateUserRole(slug: string, role: "admin" | "user"):
   try {
     const res = await fetch("/api/admin/user-role", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: adminHeaders(),
       body: JSON.stringify({ slug, role }),
     });
     if (res.ok) {
@@ -532,7 +591,7 @@ export async function adminCreateUser(profileData: Partial<UserProfile>): Promis
   try {
     const res = await fetch("/api/admin/create-user", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: adminHeaders(),
       body: JSON.stringify(newProfile),
     });
     if (res.ok) {
@@ -553,8 +612,9 @@ export async function adminDeleteProfile(slug: string): Promise<boolean> {
   saveLocalProfiles(filtered);
 
   try {
-    await fetch(`/api/admin/portfolios/${slug}`, {
+    await fetch(`/api/admin/portfolios/${encodeURIComponent(slug)}`, {
       method: "DELETE",
+      headers: adminHeaders(),
     });
   } catch (e) {
     console.error("Admin delete server call deferred:", e);

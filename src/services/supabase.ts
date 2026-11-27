@@ -1,9 +1,25 @@
-import { createClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+
+let clientPromise: Promise<SupabaseClient | null> | null = null;
+
+/**
+ * Loads the Supabase SDK on first use (keeps it out of the initial bundle) and
+ * returns null when the project has no Supabase credentials configured.
+ */
+function getSupabase(): Promise<SupabaseClient | null> {
+  if (!isSupabaseConfigured) return Promise.resolve(null);
+  if (!clientPromise) {
+    clientPromise = import("@supabase/supabase-js").then(({ createClient }) =>
+      createClient(supabaseUrl as string, supabaseAnonKey as string)
+    );
+  }
+  return clientPromise;
+}
 
 export interface PositionRecord {
   id: string;
@@ -20,6 +36,8 @@ export interface PositionGroup {
 }
 
 export async function fetchPositions(): Promise<PositionRecord[]> {
+  const supabase = await getSupabase();
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from("positions")
     .select("id, category, subcategory, name, is_custom, created_at")
@@ -61,6 +79,8 @@ export async function addCustomPosition(
   const cleanName = name.trim();
   if (!cleanCat || !cleanName) return null;
 
+  const supabase = await getSupabase();
+  if (!supabase) return null;
   const { data, error } = await supabase
     .from("positions")
     .insert({
